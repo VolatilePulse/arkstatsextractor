@@ -1,0 +1,22 @@
+{
+  "name": "arkstatsextractor",
+  "version": "1.0.0",
+  "license": "MIT",
+  "description": "Typescript attempt at creating an Ark Stats Extractor",
+  "author": "VolatilePulse",
+  "repository": "github:VolatilePulse/arkstatsextractor.git",
+  "bugs": "https://github.com/VolatilePulse/arkstatsextractor/issues",
+  "homepage": "https://github.com/VolatilePulse/arkstatsextractor#readme",
+  "main": "public/js/extractor/index.js",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "interval-arithmetic": "^1.0.0",
+    "typescript": "^3.9.5"
+  },
+  "devDependencies": {
+    "jest": "^26.1.0"
+  }
+}

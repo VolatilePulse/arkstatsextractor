@@ -1,0 +1,17 @@
+{
+   "compileOnSave": false,
+   "compilerOptions": {
+      "target": "es2015",
+      "moduleResolution": "node",
+      "module": "es2015",
+      "baseUrl": ".",
+      "rootDir": ".",
+      "outDir": "public",
+      "paths": {
+         "@class/*": ["js/extractor/cls/*"]
+      }
+   },
+   "exclude": [
+      "node_modules"
+   ]
+}

@@ -1,0 +1,4 @@
+# ignores installed modules
+/node_modules/
+# ignores compiled javascript files
+/public/*
