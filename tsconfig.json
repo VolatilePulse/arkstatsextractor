@@ -1,17 +1,16 @@
 {
    "compileOnSave": false,
    "compilerOptions": {
-      "target": "es2015",
+      "target": "es5",
       "moduleResolution": "node",
-      "module": "es2015",
-      "baseUrl": ".",
-      "rootDir": ".",
+      "module": "commonJS",
+      "baseUrl": "src",
+      "rootDir": "src",
       "outDir": "public",
-      "paths": {
-         "@class/*": ["js/extractor/cls/*"]
-      }
+      "downlevelIteration": true,
    },
    "exclude": [
-      "node_modules"
-   ]
+      "node_modules",
+      "**/*.test.ts",
+   ],
 }

@@ -7,7 +7,7 @@ export class Creature {
    isWild: boolean = true;
    isTamed: boolean = false;
    isBred: boolean = false;
-
+   
    imprint: number = 0;
 
    statusValues: number[] = Array(12).fill(0);

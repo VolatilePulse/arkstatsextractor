@@ -1,5 +1,5 @@
-import { servers } from "../../../api/servers.js";
-import { stats } from "../../../api/stats.js";
+import { servers } from "../../api/servers";
+import { stats } from "../../api/stats";
 
 export class Servers {
    official: number[][];

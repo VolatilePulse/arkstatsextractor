@@ -1,4 +1,4 @@
-import { presetData } from './data.js'
+import { presetData } from './data'
 
 export class Server {
    singleplayer: boolean = false;

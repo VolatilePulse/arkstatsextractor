@@ -1,6 +1,6 @@
-import { Server } from './cls/server.js';
-import { presetData } from './cls/data.js';
-import { Creature } from './cls/creature.js';
+import { Server } from './cls/server';
+import { presetData } from './cls/data';
+import { Creature } from './cls/creature';
 
 let inputServer = new Server();
 // console.log(inputServer);
