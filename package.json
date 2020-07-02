@@ -1,23 +1,36 @@
 {
-  "name": "arkstatsextractor",
-  "version": "1.0.0",
-  "license": "MIT",
-  "description": "Typescript attempt at creating an Ark Stats Extractor",
-  "author": "VolatilePulse",
-  "repository": "github:VolatilePulse/arkstatsextractor.git",
-  "bugs": "https://github.com/VolatilePulse/arkstatsextractor/issues",
-  "homepage": "https://github.com/VolatilePulse/arkstatsextractor#readme",
-  "main": "public/js/extractor/index.js",
-  "scripts": {
-    "test": "jest"
-  },
-  "dependencies": {
-    "interval-arithmetic": "^1.0.0"
-  },
-  "devDependencies": {
-    "@types/jest": "^26.0.3",
-    "jest": "^26.1.0",
-    "ts-jest": "^26.1.1",
-    "typescript": "^3.9.5"
-  }
+    "name": "arkstatsextractor",
+    "version": "1.0.0",
+    "license": "MIT",
+    "description": "Typescript attempt at creating an Ark Stats Extractor",
+    "author": "VolatilePulse",
+    "repository": "github:VolatilePulse/arkstatsextractor.git",
+    "bugs": "https://github.com/VolatilePulse/arkstatsextractor/issues",
+    "homepage": "https://github.com/VolatilePulse/arkstatsextractor#readme",
+    "main": "public/js/extractor/index.js",
+    "prettier": {
+        "semi": true,
+        "trailingComma": "all",
+        "singleQuote": true,
+        "printWidth": 120,
+        "tabWidth": 4
+    },
+    "scripts": {
+        "test": "jest"
+    },
+    "dependencies": {
+        "interval-arithmetic": "^1.0.0"
+    },
+    "devDependencies": {
+        "@types/jest": "^26.0.3",
+        "@typescript-eslint/eslint-plugin": "^3.5.0",
+        "@typescript-eslint/parser": "^3.5.0",
+        "eslint": "^7.3.1",
+        "eslint-config-prettier": "^6.11.0",
+        "eslint-plugin-prettier": "^3.1.4",
+        "jest": "^26.1.0",
+        "prettier": "^2.0.5",
+        "ts-jest": "^26.1.1",
+        "typescript": "^3.9.5"
+    }
 }
