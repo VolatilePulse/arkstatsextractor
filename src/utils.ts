@@ -1,22 +1,23 @@
 import IA, { Interval } from 'interval-arithmetic';
-import * as defaultServers from '../api/servers';
-import { stats } from '../api/stats';
-import { Servers, Species } from '../js/cls/data';
-import { Multipliers } from '../js/cls/mults';
+import * as defaultServers from './api/servers';
+import { stats } from './api/stats';
+import { Species } from './species';
+import { Multipliers } from './mults';
 
 interface PresetData {
-    servers: Servers;
+    servers: { official: number[][]; singleplayer: number[][] };
     species: Species[];
 }
 
 export function GatherData(): PresetData {
-    const servers: Servers = new Servers(defaultServers.servers);
+    const servers = defaultServers.servers;
     const species: Species[] = [];
 
     for (const s of stats.species) species.push(CreateSpecies(s));
 
     return { servers, species };
 }
+
 interface SpeciesFormat {
     name: string;
     blueprintPath: string;

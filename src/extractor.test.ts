@@ -1,6 +1,6 @@
 import IA from 'interval-arithmetic';
 import { ExtractLevelsFromTorpor } from './extractor';
-import { CombineMultipliers } from '../utils/utils';
+import { CombineMultipliers } from './utils';
 
 const speciesTorpor = [100, 0, 0, 0, 0, 0];
 const serverTorpor = [0, 0, 0, 0, 0];

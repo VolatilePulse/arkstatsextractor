@@ -1,6 +1,6 @@
 import IA, { Interval } from 'interval-arithmetic';
-import { intFromRange } from '../utils/utils';
-import { Multipliers } from './cls/mults';
+import { intFromRange } from './utils';
+import { Multipliers } from './mults';
 
 // # Extract creature base & domestic levels
 // ## Inputs:

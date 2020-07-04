@@ -1,6 +1,6 @@
-import { Server } from './cls/server';
-import { Creature } from './cls/creature';
-import { GatherData } from '../utils/utils';
+import { Server } from './server';
+import { Creature } from './creature';
+import { GatherData } from './utils';
 
 const presetData = GatherData();
 

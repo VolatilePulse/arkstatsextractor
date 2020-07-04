@@ -1,4 +1,4 @@
-import { Species } from './data.js';
+import { Species } from './species.js';
 
 export class Creature {
     blueprint = '';
