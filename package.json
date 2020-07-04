@@ -19,7 +19,7 @@
         "test": "jest"
     },
     "dependencies": {
-        "interval-arithmetic": "^1.0.0"
+        "interval-arithmetic": "^1.0.1"
     },
     "devDependencies": {
         "@types/jest": "^26.0.3",
