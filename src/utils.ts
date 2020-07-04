@@ -61,13 +61,13 @@ export function CombineMultipliers(speciesM: number[], serverM: number[]): Multi
         else multipliers.push(1);
     }
 
-    const m = multipliers.map((x) => (x != 0 ? new IA().boundedSingleton(x) : IA.ZERO));
+    const m = multipliers.map((x) => (x != 0 ? IA().boundedSingleton(x) : IA.ZERO));
 
     return new Multipliers(m);
 }
 
 export function* intFromRange(interval: Interval, fn?: (value: number) => number): Generator<number> {
-    interval = IA.intersection(new IA(0, Infinity), interval);
+    interval = IA.intersection(IA(0, Infinity), interval);
     const min = fn ? fn(interval.lo) : Math.ceil(interval.lo);
     const max = fn ? fn(interval.hi) : Math.floor(interval.hi);
     for (let i = min; i <= max; i++) yield i;

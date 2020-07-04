@@ -9,7 +9,7 @@ const speciesTorpor = [100, 0, 0, 0, 0, 0];
 const serverTorpor = [0, 0, 0, 0, 0];
 const mults = CombineMultipliers(speciesTorpor, serverTorpor);
 
-const torpor = new IA(100);
+const torpor = IA(100);
 const imprint = IA.ZERO;
 const m = mults;
 
