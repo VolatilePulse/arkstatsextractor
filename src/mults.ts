@@ -1,4 +1,5 @@
 import IA, { Interval } from 'interval-arithmetic';
+import { B, IW, ID, TA, TM, IB, IWM, IDM, TAM, TMM, IBM } from './consts';
 
 export class Multipliers {
     B: Interval;
@@ -9,11 +10,11 @@ export class Multipliers {
     Ib: Interval;
 
     constructor(m: Interval[]) {
-        this.B = m[0];
-        this.Iw = IA.mul(m[1], m[6]);
-        this.Id = IA.mul(m[2], m[7]);
-        this.Ta = IA.mul(m[3], m[8]);
-        this.Tm = IA.mul(m[4], m[9]);
-        this.Ib = IA.mul(m[5], m[10]);
+        this.B = m[B];
+        this.Iw = IA.mul(m[IW], m[IWM]);
+        this.Id = IA.mul(m[ID], m[IDM]);
+        this.Ta = IA.mul(m[TA], m[TAM]);
+        this.Tm = IA.mul(m[TM], m[TMM]);
+        this.Ib = IA.mul(m[IB], m[IBM]);
     }
 }

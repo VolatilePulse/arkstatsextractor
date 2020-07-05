@@ -1,12 +1,63 @@
 import IA from 'interval-arithmetic';
-import { ExtractLevelsFromTorpor } from './extractor';
-import { CombineMultipliers } from './utils';
+import { ExtractLevelsFromTorpor, CalculateServerMults } from '../extractor';
+import { CombineMultipliers, FilledArray } from '../utils';
+import * as data from '../data';
+import { Server } from '../server';
+import { STAT_COUNT } from '../consts';
 
-const speciesTorpor = [100, 0, 0, 0, 0, 0];
-const serverTorpor = [0, 0, 0, 0, 0];
-const mults = CombineMultipliers(speciesTorpor, serverTorpor);
+jest.mock('../data');
+const mockedData = data as jest.Mocked<typeof data>;
+
+describe('CalculateServerMults', () => {
+    const fakePresetData = {
+        servers: {
+            official: FilledArray(STAT_COUNT, () => FilledArray(5, () => 3)),
+            singleplayer: FilledArray(STAT_COUNT, () => FilledArray(5, () => 4)),
+        },
+        species: [],
+    };
+    mockedData.GetPresetData.mockReturnValue(fakePresetData);
+
+    it('properly multiplies singleplayer multipliers to the default multipliers', () => {
+        const test = Server.FromOfficial();
+        test.singleplayer = true;
+
+        const result = CalculateServerMults(test);
+
+        expect(data.GetPresetData).toHaveBeenCalled();
+        expect(result[0][0]).toEqual(12);
+        expect(result[0][2]).toEqual(12);
+        expect(result[8][3]).toEqual(12);
+    });
+    it("doesn't modify the multipliers if singleplayer is false", () => {
+        const test = Server.FromOfficial();
+        test.singleplayer = false;
+
+        const result = CalculateServerMults(test);
+
+        expect(data.GetPresetData).toHaveBeenCalled();
+        expect(result[0][0]).toEqual(3);
+        expect(result[0][2]).toEqual(3);
+        expect(result[8][3]).toEqual(3);
+    });
+    it("doesn't modify the input multipliers", () => {
+        const test = Server.FromOfficial();
+        test.singleplayer = true;
+
+        CalculateServerMults(test);
+        const mults = test.multipliers;
+
+        expect(data.GetPresetData).toHaveBeenCalled();
+        expect(mults[0][0]).toEqual(3);
+        expect(mults[0][2]).toEqual(3);
+        expect(mults[8][3]).toEqual(3);
+    });
+});
 
 describe('ExtractLevels', () => {
+    const speciesTorpor = [100, 0, 0, 0, 0, 0];
+    const serverTorpor = [0, 0, 0, 0, 0];
+    const mults = CombineMultipliers(speciesTorpor, serverTorpor);
     it('works with a basic test case', () => {
         const torpor = IA(100);
         const imprint = IA.ZERO;

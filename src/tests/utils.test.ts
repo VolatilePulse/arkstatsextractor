@@ -1,5 +1,5 @@
 import IA from 'interval-arithmetic';
-import { intFromRange } from './utils';
+import { intFromRange } from '../utils';
 
 describe('intFromRange', () => {
     it('[1, 0] should contain []', () => {

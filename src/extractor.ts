@@ -1,6 +1,31 @@
 import IA, { Interval } from 'interval-arithmetic';
 import { intFromRange } from './utils';
 import { Multipliers } from './mults';
+import { Server } from './server';
+import { GetPresetData } from './data';
+
+// # Condition Server
+// ## Inputs
+// Server multipliers
+// ## Outputs
+// Server multipliers
+// ## Description
+// If server's singleplayer is true, multiply multipliers against singleplayer multipliers
+
+export function CalculateServerMults(server: Server): number[][] {
+    if (!server.singleplayer) return server.multipliers;
+
+    const output = new Server(server);
+    const spMults = GetPresetData().servers.singleplayer;
+
+    for (let stat = 0; stat < server.multipliers.length; stat++) {
+        for (let i = 0; i < server.multipliers[stat].length; i++) {
+            output.multipliers[stat][i] = server.multipliers[stat][i] * spMults[stat][i];
+        }
+    }
+
+    return output.multipliers;
+}
 
 // # Extract creature base & domestic levels
 // ## Inputs:
@@ -26,8 +51,23 @@ import { Multipliers } from './mults';
 
 // wildTamedBred = 1: wild, 2: tamed, 3: bred
 
+// Stat Value Calculation:
+//  Iw = Iw * (Iw > 0) ? IwM : 1
+//  Id = Id * (Id > 0) ? IdM : 1
+//  Ta = Ta * (Ta > 0) ? TaM : 1
+//  Tm = Tm * (Tm > 0) ? TmM : 1
+//  Ib = Ib * (Ib > 0) ? IbM : 1
+
+//  TBHM = (statIndex != HEALTH || isWild) ? 1 : TBHM
+//  Imp = (isBred) ? IA(Imp - 0.5%, Imp + 0.5%) : 0
+//  TE = (isWild) ? 0 : (isBred) : 1 : IA(0, 1)
+//  Lw = IA(0, Level - 1)
+//  Ld = IA(Level - Lw, Level - 1)
+
+//  V = (B * (1 + Lw * Iw) * TBHM * (1 + Imp * Ib) + Ta) * (1 + TE * Tm) * (1 + Ld * Id)
+
 // Torpor Stat Value Calculation:
-//    (B * (1 + baseLevel * torporInc) * (1 + Imp * Ib * IbM) + Ta * TaM) * (1 + TE * Tm * TmM) * (1 + Ld * Id * IdM)
+//  (B * (1 + baseLevel * torporInc) * (1 + Imp * Ib * IbM) + Ta * TaM) * (1 + TE * Tm * TmM) * (1 + Ld * Id * IdM)
 
 // Extract creature base & domestic levels
 export function ExtractLevelsFromTorpor(
@@ -40,7 +80,7 @@ export function ExtractLevelsFromTorpor(
 ): Array<[number, number]> {
     if (canLevel) throw new Error('Torpor being leveled is unsupported at this time.');
     if (IA.notEqual(m.Tm, IA.ZERO)) throw new Error('Torpor having a TameMultiplier is unsupported at this time.');
-    if (torporInc == IA.ZERO) throw new Error('Torpor cannot be calculated for this species');
+    if (IA.equal(torporInc, IA.ZERO)) throw new Error('Torpor cannot be calculated for this species');
 
     // V = (B * (1 + baseLevel * torporInc) * (1 + Imp * IB * IBM) + Ta * TaM)
     // Remove Ta from Torpor

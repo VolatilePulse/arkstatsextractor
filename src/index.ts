@@ -1,8 +1,8 @@
 import { Server } from './server';
 import { Creature } from './creature';
-import { GatherData } from './utils';
+import { GetPresetData } from './data';
 
-const presetData = GatherData();
+const presetData = GetPresetData();
 
 const inputServer = new Server(presetData.servers.official);
 console.log(inputServer);

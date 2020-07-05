@@ -3,13 +3,14 @@ import * as defaultServers from './api/servers';
 import { stats } from './api/stats';
 import { Species } from './species';
 import { Multipliers } from './mults';
+import { TORPOR, IW, ID, STAT_COUNT, IB } from './consts';
 
-interface PresetData {
+export interface PresetData {
     servers: { official: number[][]; singleplayer: number[][] };
     species: Species[];
 }
 
-export function GatherData(): PresetData {
+export function GetGlobalData(): PresetData {
     const servers = defaultServers.servers;
     const species: Species[] = [];
 
@@ -32,18 +33,18 @@ export function CreateSpecies(s: SpeciesFormat): Species {
     species.blueprint = s.blueprintPath;
     species.name = s.name;
     species.stats = s.fullStatsRaw;
-    species.torporIncrease = species.stats[2][1];
-    species.stats[2][1] = 0;
+    species.torporIncrease = species.stats[TORPOR][IW];
+    species.stats[TORPOR][IW] = 0;
     species.tbhm = s.TamedBaseHealthMultiplier;
 
-    for (let i = 0; i < species.stats.length; i++) {
+    for (let i = 0; i < STAT_COUNT; i++) {
         species.displayedStats.push(!!(s.displayedStats & (1 << i)));
 
         if (species.stats[i] == null) species.stats[i] = [0, 0, 0, 0, 0];
-        if (species.stats[i][2] == 0) {
+        if (species.stats[i][ID] == 0) {
             species.canLevel[i] = false;
 
-            if (species.stats[i][1] == 0) species.dontUse[i] = true;
+            if (species.stats[i][IW] == 0) species.dontUse[i] = true;
         }
     }
 
@@ -56,11 +57,13 @@ export function CreateSpecies(s: SpeciesFormat): Species {
 export function CombineMultipliers(speciesM: number[], serverM: number[]): Multipliers {
     const multipliers: number[] = speciesM;
 
-    for (let i = 1; i <= 5; i++) {
-        if (speciesM[i] > 0) multipliers.push(serverM[i + 5]);
+    for (let i = IW; i <= IB; i++) {
+        // If species multiplier is positive
+        if (speciesM[i] > 0) multipliers.push(serverM[i + speciesM.length]);
         else multipliers.push(1);
     }
 
+    // Prevent zero from becoming bounded
     const m = multipliers.map((x) => (x != 0 ? IA().boundedSingleton(x) : IA.ZERO));
 
     return new Multipliers(m);
@@ -71,4 +74,13 @@ export function* intFromRange(interval: Interval, fn?: (value: number) => number
     const min = fn ? fn(interval.lo) : Math.ceil(interval.lo);
     const max = fn ? fn(interval.hi) : Math.floor(interval.hi);
     for (let i = min; i <= max; i++) yield i;
+}
+
+/**
+ * Create an array pre-filled with data supplied by the given function. Example FilledArray(4, () => []) creates [[],[],[],[]].
+ * @param {number} length The length of the array
+ * @param {function} fn A function to call to get the contents of an element, passed (undefined, index)
+ */
+export function FilledArray<T>(length: number, fn: (_: null, i: number) => T): T[] {
+    return [...Array(length)].map(fn);
 }
