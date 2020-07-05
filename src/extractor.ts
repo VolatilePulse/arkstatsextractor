@@ -3,9 +3,9 @@ import { intFromRange, CombineAllMults } from './utils';
 import { Multipliers } from './mults';
 import { Server } from './server';
 import { GetPresetData } from './data';
-import { Creature } from 'creature';
-import { Species } from 'species';
-import { STAT_COUNT } from 'consts';
+import { Creature } from './creature';
+import { Species } from './species';
+import { STAT_COUNT } from './consts';
 
 export function Extract(creature: Creature, server: Server, species: Species) {
     // Format creature values
