@@ -1,16 +1,28 @@
 import IA, { Interval } from 'interval-arithmetic';
-import { intFromRange } from './utils';
+import { intFromRange, CombineAllMults } from './utils';
 import { Multipliers } from './mults';
 import { Server } from './server';
 import { GetPresetData } from './data';
+import { Creature } from 'creature';
+import { Species } from 'species';
+import { STAT_COUNT } from 'consts';
 
-// # Condition Server
-// ## Inputs
-// Server multipliers
-// ## Outputs
-// Server multipliers
-// ## Description
-// If server's singleplayer is true, multiply multipliers against singleplayer multipliers
+export function Extract(creature: Creature, server: Server, species: Species) {
+    // Format creature values
+    const serverMults = CalculateServerMults(server);
+    const mults = CombineAllMults(species.stats, serverMults);
+    const m = AdjustMultipliers(mults, creature.isWild, creature.isTamed);
+    AdjustRanges(creature.isWild, creature.isTamed, creature.isBred, creature.imprint);
+    // ExtractLevelsFromTorpor();
+}
+
+// CalculateServerMults
+//  Inputs
+//      Server multipliers
+//  Outputs
+//      Server multipliers
+//  Description
+//      If server's singleplayer is true, multiply multipliers against singleplayer multipliers
 
 export function CalculateServerMults(server: Server): number[][] {
     if (!server.singleplayer) return server.multipliers;
@@ -27,29 +39,62 @@ export function CalculateServerMults(server: Server): number[][] {
     return output.multipliers;
 }
 
-// # Extract creature base & domestic levels
-// ## Inputs:
-//    Creature level
-//    Creature is wild/tamed/bred
-//    Creature's Torpor value
-//    Creature's Imprint range
+export function AdjustMultipliers(mults: Multipliers[], isWild: boolean, isTamed: boolean): Multipliers[] {
+    const output: Multipliers[] = [];
+    for (let stat = 0; stat < STAT_COUNT; stat++) {
+        output.push(new Multipliers(mults[stat]));
+    }
+    if (isWild) {
+        output.map((m) => (m.Id = IA.ZERO));
+        output.map((m) => (m.Ta = IA.ZERO));
+        output.map((m) => (m.Tm = IA.ZERO));
+        output.map((m) => (m.Ib = IA.ZERO));
+    } else if (isTamed) {
+        output.map((m) => (m.Ib = IA.ZERO));
+    }
 
-//    Species' Torpor values
+    return output;
+}
 
-//    Server's Torpor multipliers
-//    Server's Imprint bonus multiplier
-// ## Outputs:
-//    On success:
-//       Array of 1 or more [Base Level, Domestic Levels, Valid Imprint Range]
-//    On failure:
-//       Empty Array
-// ## Description:
-//    Calculate possible level range based on Imprint value
-//    Reverse torpor calculation
-//    Output is base level (wild levels from torpor + 1) & domestic level (level - base level)
-//    Multiple outputs may be possible due to Imprint value range
+export function AdjustRanges(isWild: boolean, isTamed: boolean, isBred: boolean, imp: number): [Interval, Interval] {
+    let TE: Interval;
+    let imprint: Interval;
 
-// wildTamedBred = 1: wild, 2: tamed, 3: bred
+    if (isWild) {
+        TE = IA.ZERO;
+        imprint = IA.ZERO;
+    } else if (isTamed) {
+        TE = IA(0, 1);
+        imprint = IA.ZERO;
+    } else if (isBred) {
+        TE = IA.ONE;
+        imprint = IA(imp - 0.005, imp + 0.005); // TODO: Convert to a proper Interval range function
+    }
+
+    return [TE, imprint];
+}
+
+// Extract creature base & domestic levels
+//  Inputs:
+//      Creature level
+//      Creature is wild/tamed/bred
+//      Creature's Torpor value
+//      Creature's Imprint range
+
+//      Species' Torpor values
+
+//      Server's Torpor multipliers
+//      Server's Imprint bonus multiplier
+//  Outputs:
+//      On success:
+//          Array of 1 or more [Base Level, Domestic Levels, Valid Imprint Range]
+//      On failure:
+//          Empty Array
+//  Description:
+//      Calculate possible level range based on Imprint value
+//      Reverse torpor calculation
+//      Output is base level (wild levels from torpor + 1) & domestic level (level - base level)
+//      Multiple outputs may be possible due to Imprint value range
 
 // Stat Value Calculation:
 //  Iw = Iw * (Iw > 0) ? IwM : 1

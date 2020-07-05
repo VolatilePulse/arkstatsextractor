@@ -32,12 +32,12 @@ Interval for TE and imprint based on Extraction type
 
 Convert Values to a range
 Multiply server multipliers by singleplayer multipliers if singleplayer is true
+Combine species and server multipliers with CombineMultipliers
 Based on Extraction Type, condition multipliers
 
 -   If wild, set all "tamed" multipliers to 0
 -   If tamed, set all "bred" multipliers to 0
 
-Combine species and server multipliers with CombineMultipliers
 Based on Extraction Type, condition TE and Imprint ranges
 
 -   If wild, set TE and Imprint to IA.ZERO

@@ -54,6 +54,14 @@ export function CreateSpecies(s: SpeciesFormat): Species {
     return species;
 }
 
+export function CombineAllMults(speciesM: number[][], serverM: number[][]): Multipliers[] {
+    const output: Multipliers[] = [];
+    for (let stat = 0; stat < STAT_COUNT; stat++) {
+        output.push(CombineMultipliers(speciesM[stat], serverM[stat]));
+    }
+    return output;
+}
+
 export function CombineMultipliers(speciesM: number[], serverM: number[]): Multipliers {
     const multipliers: number[] = speciesM;
 
