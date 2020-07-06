@@ -16,14 +16,13 @@ export function Extract(creature: Creature, server: Server, species: Species) {
     // ExtractLevelsFromTorpor();
 }
 
-// CalculateServerMults
-//  Inputs
-//      Server multipliers
-//  Outputs
-//      Server multipliers
-//  Description
-//      If server's singleplayer is true, multiply multipliers against singleplayer multipliers
-
+/**
+ * Multiplies the server multipliers by the singleplayer multipliers if the server is a singleplayer server
+ *
+ * @param server
+ *
+ * @returns A copy of the multipliers, multiplied by singleplayer multipliers if applicable
+ */
 export function CalculateServerMults(server: Server): number[][] {
     if (!server.singleplayer) return server.multipliers;
 
@@ -39,18 +38,28 @@ export function CalculateServerMults(server: Server): number[][] {
     return output.multipliers;
 }
 
-export function AdjustMultipliers(mults: Multipliers[], isWild: boolean, isTamed: boolean): Multipliers[] {
+/**
+ * Zeros out the Tamed and/or Bred multipliers if the calculation wouldn't use them
+ *
+ * @param multipliers
+ * @param isWild
+ * @param isTamed
+ *
+ * @returns A copy of the multipliers after they have been adjusted
+ */
+export function AdjustMultipliers(multipliers: Multipliers[], isWild: boolean, isTamed: boolean): Multipliers[] {
     const output: Multipliers[] = [];
     for (let stat = 0; stat < STAT_COUNT; stat++) {
-        output.push(new Multipliers(mults[stat]));
-    }
-    if (isWild) {
-        output.map((m) => (m.Id = IA.ZERO));
-        output.map((m) => (m.Ta = IA.ZERO));
-        output.map((m) => (m.Tm = IA.ZERO));
-        output.map((m) => (m.Ib = IA.ZERO));
-    } else if (isTamed) {
-        output.map((m) => (m.Ib = IA.ZERO));
+        const m: Multipliers = multipliers[stat];
+        let statMults: Multipliers;
+        if (isWild) {
+            statMults = new Multipliers([m.B, m.Iw, IA.ZERO, IA.ZERO, IA.ZERO, IA.ZERO]);
+        } else if (isTamed) {
+            statMults = new Multipliers([m.B, m.Iw, m.Id, m.Ta, m.Tm, IA.ZERO]);
+        } else {
+            statMults = m;
+        }
+        output.push(new Multipliers(statMults));
     }
 
     return output;
@@ -124,7 +133,7 @@ export function ExtractLevelsFromTorpor(
     canLevel: boolean,
 ): Array<[number, number]> {
     if (canLevel) throw new Error('Torpor being leveled is unsupported at this time.');
-    if (IA.notEqual(m.Tm, IA.ZERO)) throw new Error('Torpor having a TameMultiplier is unsupported at this time.');
+    if (!IA.equal(m.Tm, IA.ZERO)) throw new Error('Torpor having a TameMultiplier is unsupported at this time.');
     if (IA.equal(torporInc, IA.ZERO)) throw new Error('Torpor cannot be calculated for this species');
 
     // V = (B * (1 + baseLevel * torporInc) * (1 + Imp * IB * IBM) + Ta * TaM)

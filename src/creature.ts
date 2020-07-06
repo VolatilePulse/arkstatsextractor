@@ -3,16 +3,15 @@ import { B, STAT_COUNT } from './consts.js';
 import { FilledArray } from 'utils.js';
 
 export class Creature {
-    blueprint = '';
-    level = 1;
+    readonly blueprint: string;
+    readonly level: number;
 
-    isWild = true;
-    isTamed = false;
-    isBred = false;
+    readonly isWild: boolean;
+    readonly isTamed: boolean;
+    readonly isBred: boolean;
 
-    imprint = 0;
-
-    statusValues: number[] = FilledArray(STAT_COUNT, () => 0);
+    readonly imprint: number;
+    readonly statusValues: number[] = FilledArray(STAT_COUNT, () => 0);
 
     constructor(species: Species) {
         this.blueprint = species.blueprint;

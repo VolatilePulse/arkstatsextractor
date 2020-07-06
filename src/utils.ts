@@ -77,6 +77,13 @@ export function CombineMultipliers(speciesM: number[], serverM: number[]): Multi
     return new Multipliers(m);
 }
 
+/**
+ * Generator that returns all non-negative integers within an interval
+ *
+ * @param interval The interval to retrieve the integers from
+ * @param fn Optional function to calculate the min and max. If no function is supplied,
+ * Ceil and Floor are used to calculate the min and max, respectively.
+ */
 export function* intFromRange(interval: Interval, fn?: (value: number) => number): Generator<number> {
     interval = IA.intersection(IA(0, Infinity), interval);
     const min = fn ? fn(interval.lo) : Math.ceil(interval.lo);
@@ -85,7 +92,10 @@ export function* intFromRange(interval: Interval, fn?: (value: number) => number
 }
 
 /**
- * Create an array pre-filled with data supplied by the given function. Example FilledArray(4, () => []) creates [[],[],[],[]].
+ * Create an array pre-filled with data supplied by the given function.
+ *
+ * @example FilledArray(4, () => []) creates [[],[],[],[]].
+ *
  * @param {number} length The length of the array
  * @param {function} fn A function to call to get the contents of an element, passed (undefined, index)
  */
