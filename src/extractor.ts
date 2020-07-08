@@ -1,5 +1,6 @@
 import IA, { Interval } from 'interval-arithmetic';
-import { intFromRange, CombineAllMults } from './utils';
+import { intFromRange } from './utils';
+import { CombineAllMults } from './ark';
 import { Multipliers } from './mults';
 import { Server } from './server';
 import { GetPresetData } from './data';

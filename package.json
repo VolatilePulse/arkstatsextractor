@@ -19,7 +19,8 @@
         "test": "jest"
     },
     "dependencies": {
-        "interval-arithmetic": "^1.0.5"
+        "interval-arithmetic": "^1.0.5",
+        "math-float32-nextafter": "^1.0.0"
     },
     "devDependencies": {
         "@types/jest": "^26.0.3",

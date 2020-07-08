@@ -1,80 +1,43 @@
 import IA, { Interval } from 'interval-arithmetic';
-import * as defaultServers from './api/servers';
-import { stats } from './api/stats';
-import { Species } from './species';
-import { Multipliers } from './mults';
-import { TORPOR, IW, ID, STAT_COUNT, IB } from './consts';
+import nextfloat32 from 'math-float32-nextafter';
 
-export interface PresetData {
-    servers: { official: number[][]; singleplayer: number[][] };
-    species: Species[];
+/**
+ * Rounds a number to a set decimal place for comparison
+ *
+ * @param {number} num Value that needs rounded
+ * @param {number} places Number of decimals to be rounded to
+ *
+ * @returns {number} Decimal rounded to the specified precision
+ */
+export function RoundTo(num: number, places = 0): number {
+    return +Number(num).toFixed(places);
 }
 
-export function GetGlobalData(): PresetData {
-    const servers = defaultServers.servers;
-    const species: Species[] = [];
-
-    for (const s of stats.species) species.push(CreateSpecies(s));
-
-    return { servers, species };
+/**
+ * Returns the Interval range of the previous and next float representation of value
+ *
+ * @param {number} value Value used to generate the range
+ *
+ * @return {Interval} Interval containing the value and the previous and next float.
+ */
+export function floatRange(value: number): Interval {
+    if (value === 0) return IA.ZERO;
+    return IA(nextfloat32(value, -Infinity), nextfloat32(value, Infinity));
 }
 
-interface SpeciesFormat {
-    name: string;
-    blueprintPath: string;
-    TamedBaseHealthMultiplier: number;
-    displayedStats: number;
-    statImprintMult?: number[];
-    fullStatsRaw: number[][];
-}
-
-export function CreateSpecies(s: SpeciesFormat): Species {
-    const species: Species = new Species();
-    species.blueprint = s.blueprintPath;
-    species.name = s.name;
-    species.stats = s.fullStatsRaw;
-    species.torporIncrease = species.stats[TORPOR][IW];
-    species.stats[TORPOR][IW] = 0;
-    species.tbhm = s.TamedBaseHealthMultiplier;
-
-    for (let i = 0; i < STAT_COUNT; i++) {
-        species.displayedStats.push(!!(s.displayedStats & (1 << i)));
-
-        if (species.stats[i] == null) species.stats[i] = [0, 0, 0, 0, 0];
-        if (species.stats[i][ID] == 0) {
-            species.canLevel[i] = false;
-
-            if (species.stats[i][IW] == 0) species.dontUse[i] = true;
-        }
-    }
-
-    if (s.statImprintMult) species.imprintMultiplier = s.statImprintMult;
-    else species.imprintMultiplier = [0.2, 0, 0.2, 0, 0.2, 0.2, 0, 0.2, 0.2, 0.2, 0, 0];
-
-    return species;
-}
-
-export function CombineAllMults(speciesM: number[][], serverM: number[][]): Multipliers[] {
-    const output: Multipliers[] = [];
-    for (let stat = 0; stat < STAT_COUNT; stat++) {
-        output.push(CombineMultipliers(speciesM[stat], serverM[stat]));
-    }
-    return output;
-}
-
-export function CombineMultipliers(speciesM: number[], serverM: number[]): Multipliers {
-    const multipliers: number[] = speciesM;
-
-    for (let i = IW; i <= IB; i++) {
-        // If species multiplier is positive
-        if (speciesM[i] > 0) multipliers.push(serverM[i + speciesM.length]);
-        else multipliers.push(1);
-    }
-
-    // Prevent zero from becoming bounded
-    const m = multipliers.map((x) => (x != 0 ? IA().boundedSingleton(x) : IA.ZERO));
-
-    return new Multipliers(m);
+/**
+ * Create an interval from a number, accounting for variations beyond the specified number of decimal places.
+ *
+ * @example intervalFromDecimal(0.1, 1) == Interval().halfOpenRight(0.05, 0.15)
+ *
+ * @param {number} value Value to convert to an interval
+ * @param {number} places Number of "accurate" places
+ *
+ * @return {Interval} Interval to represent the accurate range of the value
+ */
+export function intervalFromDecimal(value: number, places: number): Interval {
+    const offset = IA.mul(IA(5), IA.pow(IA(10), IA(-(places + 1))));
+    return IA().halfOpenRight(floatRange(value - offset.hi).lo, floatRange(value + offset.hi).hi);
 }
 
 /**
@@ -83,6 +46,8 @@ export function CombineMultipliers(speciesM: number[], serverM: number[]): Multi
  * @param interval The interval to retrieve the integers from
  * @param fn Optional function to calculate the min and max. If no function is supplied,
  * Ceil and Floor are used to calculate the min and max, respectively.
+ *
+ * @yield A non-negative integer, starting with "min"
  */
 export function* intFromRange(interval: Interval, fn?: (value: number) => number): Generator<number> {
     interval = IA.intersection(IA(0, Infinity), interval);
@@ -92,12 +57,30 @@ export function* intFromRange(interval: Interval, fn?: (value: number) => number
 }
 
 /**
+ * Generator that returns all non-negative integers within an interval, in reverse
+ *
+ * @param interval The interval to retrieve the integers from
+ * @param fn Optional function to calculate the min and max. If no function is supplied,
+ * Ceil and Floor are used to calculate the min and max, respectively.
+ *
+ * @yield A non-negative integer, starting with "max"
+ */
+export function* intFromRangeReverse(interval: Interval, fn?: (value: number) => number): Generator<number> {
+    interval = IA.intersection(IA(0, Infinity), interval);
+    const min = fn ? fn(interval.lo) : Math.ceil(interval.lo);
+    const max = fn ? fn(interval.hi) : Math.floor(interval.hi);
+    for (let i = max; i >= min; i--) yield i;
+}
+
+/**
  * Create an array pre-filled with data supplied by the given function.
  *
  * @example FilledArray(4, () => []) creates [[],[],[],[]].
  *
  * @param {number} length The length of the array
  * @param {function} fn A function to call to get the contents of an element, passed (undefined, index)
+ *
+ * @return {Array} An array of "length" containing the values/objects returned by "fn"
  */
 export function FilledArray<T>(length: number, fn: (_: null, i: number) => T): T[] {
     return [...Array(length)].map(fn);

@@ -1,6 +1,7 @@
 import IA from 'interval-arithmetic';
 import { ExtractLevelsFromTorpor, CalculateServerMults } from '../extractor';
-import { CombineMultipliers, FilledArray } from '../utils';
+import { FilledArray } from '../utils';
+import { CombineMultipliers } from '../ark';
 import * as data from '../data';
 import { Server } from '../server';
 import { STAT_COUNT } from '../consts';
