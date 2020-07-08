@@ -1,6 +1,6 @@
-import { Species } from './species.js';
-import { B, STAT_COUNT } from './consts.js';
-import { FilledArray } from 'utils.js';
+import { Species } from './species';
+import { B, STAT_COUNT } from './consts';
+import { FilledArray } from 'utils';
 
 export class Creature {
     readonly blueprint: string;
