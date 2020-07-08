@@ -1,11 +1,14 @@
 import { GetPresetData } from './data';
 
 export class Server {
-    singleplayer = false;
-    imprint = 1;
-    multipliers: number[][];
+    readonly singleplayer: boolean;
+    readonly imprint: number;
+    readonly multipliers: number[][];
 
-    constructor(server: number[][] | Server) {
+    constructor(server: number[][] | Server, singlePlayer = false, imprint = 1) {
+        this.singleplayer = singlePlayer;
+        this.imprint = imprint;
+
         if (server instanceof Server) {
             this.singleplayer = server.singleplayer;
             this.imprint = server.imprint;
@@ -27,10 +30,8 @@ export class Server {
         }
     }
 
-    static FromOfficial(): Server {
-        const server = new Server(GetPresetData().servers.official);
-        server.singleplayer = false;
-        server.imprint = 1;
+    static FromOfficial(singleplayer = false): Server {
+        const server = new Server(GetPresetData().servers.official, singleplayer);
         return server;
     }
 }

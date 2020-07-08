@@ -5,6 +5,7 @@ import { CombineMultipliers } from '../ark';
 import * as data from '../data';
 import { Server } from '../server';
 import { STAT_COUNT } from '../consts';
+import { Multipliers } from '../mults';
 
 jest.mock('../data');
 const mockedData = data as jest.Mocked<typeof data>;
@@ -20,8 +21,7 @@ describe('CalculateServerMults', () => {
     mockedData.GetPresetData.mockReturnValue(fakePresetData);
 
     it('properly multiplies singleplayer multipliers to the default multipliers', () => {
-        const test = Server.FromOfficial();
-        test.singleplayer = true;
+        const test = Server.FromOfficial(true);
 
         const result = CalculateServerMults(test);
 
@@ -32,7 +32,6 @@ describe('CalculateServerMults', () => {
     });
     it("doesn't modify the multipliers if singleplayer is false", () => {
         const test = Server.FromOfficial();
-        test.singleplayer = false;
 
         const result = CalculateServerMults(test);
 
@@ -42,8 +41,7 @@ describe('CalculateServerMults', () => {
         expect(result[8][3]).toEqual(3);
     });
     it("doesn't modify the input multipliers", () => {
-        const test = Server.FromOfficial();
-        test.singleplayer = true;
+        const test = Server.FromOfficial(true);
 
         CalculateServerMults(test);
         const mults = test.multipliers;
@@ -82,9 +80,9 @@ describe('ExtractLevels', () => {
     it('works with a tamed level of 50 with Ta', () => {
         const torpor = IA(5000.5);
         const imprint = IA.ZERO;
-        const m = mults;
-        m.Ta = IA(0.5);
-
+        const speciesT = [100, 0, 0, 0.5, 0, 0];
+        const serverT = [0, 0, 1, 0, 0];
+        const m = CombineMultipliers(speciesT, serverT);
         const result = ExtractLevelsFromTorpor(50, torpor, IA.ONE, imprint, m, false);
 
         expect(result).toEqual([[50, 0]]);
@@ -93,7 +91,9 @@ describe('ExtractLevels', () => {
     it('works with a tamed level of 75 with Ta and has 25 domestic levels', () => {
         const torpor = IA(5000.5);
         const imprint = IA.ZERO;
-        const m = mults;
+        const speciesT = [100, 0, 0, 0.5, 0, 0];
+        const serverT = [0, 0, 1, 0, 0];
+        const m = CombineMultipliers(speciesT, serverT);
 
         const result = ExtractLevelsFromTorpor(75, torpor, IA.ONE, imprint, m, false);
 
@@ -103,10 +103,9 @@ describe('ExtractLevels', () => {
     it('works with a bred level of 50 with 100% imprint', () => {
         const torpor = IA(6000.5);
         const imprint = IA.ONE;
-        const m = mults;
-        m.Ta = IA(0.5);
-        m.Ib = IA(0.2);
-
+        const speciesT = [100, 0, 0, 0.5, 0, 0.2];
+        const serverT = [0, 0, 1, 0, 1];
+        const m = CombineMultipliers(speciesT, serverT);
         const result = ExtractLevelsFromTorpor(50, torpor, IA.ONE, imprint, m, false);
 
         expect(result).toEqual([[50, 0]]);
@@ -115,9 +114,9 @@ describe('ExtractLevels', () => {
     it('works with a bred level of 200 with 100% imprint and narrow IB range', () => {
         const torpor = IA(102.45, 102.549999);
         const imprint = IA(0.995, 1);
-        const m = mults;
-        m.Ta = IA(0.5);
-        m.Ib = IA(0.2 * 0.0001);
+        const speciesT = [100, 0, 0, 0.5, 0, 0.2];
+        const serverT = [0, 0, 1, 0, 0.0001];
+        const m = CombineMultipliers(speciesT, serverT);
 
         const result = ExtractLevelsFromTorpor(201, torpor, IA(0.0001), imprint, m, false);
 
@@ -138,8 +137,9 @@ describe('ExtractLevels', () => {
     });
 
     it('throws an Error when Torpor has a Tm', () => {
-        const m = mults;
-        m.Tm = IA.ONE;
+        const speciesTorpor = [100, 0, 0, 0, 1, 0];
+        const serverTorpor = [0, 0, 0, 1, 0];
+        const m = CombineMultipliers(speciesTorpor, serverTorpor);
 
         expect(() => ExtractLevelsFromTorpor(1, IA(100), IA.ONE, IA.ZERO, m, true)).toThrow(Error);
     });
