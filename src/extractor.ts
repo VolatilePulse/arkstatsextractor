@@ -1,12 +1,12 @@
 import IA, { Interval } from 'interval-arithmetic';
-import { IntFromRange } from './utils';
+import * as Utils from './utils';
 import { CombineAllMults } from './ark';
 import { Multipliers } from './mults';
 import { Server } from './server';
 import { GetPresetData } from './data';
 import { Creature } from './creature';
 import { Species } from './species';
-import { STAT_COUNT, TORPOR } from './consts';
+import { STAT_COUNT, TORPOR, IS_PERCENT } from './consts';
 
 /**
  * Performs a stat extraction for a creature.
@@ -41,9 +41,11 @@ export function Extract(c: Creature, svr: Server, spc: Species, fromExport = fal
  */
 export function ConvertCreatureValuesToRanges(values: number[], fromExport: boolean): Interval[] {
     const retArray: Interval[] = [];
+
     for (const v of values) {
-        retArray.push(IA(v));
+        retArray.push(Utils.CalculateRangeFromValue(v, fromExport ? 6 : 1));
     }
+
     return retArray;
 }
 
@@ -56,9 +58,19 @@ export function ConvertCreatureValuesToRanges(values: number[], fromExport: bool
  * @returns An array of the Stat value intervals with unused stats set to IA.Empty()
  */
 export function PrepareValues(stats: Interval[], fromExport: boolean): Interval[] {
-    if (fromExport) {
+    const retArray: Interval[] = [];
+    for (const [i, v] of stats.entries()) {
+        if (fromExport && IS_PERCENT[i]) {
+            // Export files don't have 1 added to percent stats
+            retArray.push(IA.add(v, IA.ONE));
+        } else if (!fromExport && IS_PERCENT[i]) {
+            // Percent stats need to be converted to numbers from Ark
+            retArray.push(IA.div(v, IA(100)));
+        } else {
+            retArray.push(v);
+        }
     }
-    return [];
+    return retArray;
 }
 
 /**
@@ -195,7 +207,7 @@ export function ExtractLevelsFromTorpor(
     const retArray: Array<[number, number]> = [];
 
     // Create an Array based on possible Base Levels
-    for (const bl of IntFromRange(baseLevel)) retArray.push([bl, level - bl]);
+    for (const bl of Utils.IntFromRange(baseLevel)) retArray.push([bl, level - bl]);
 
     // Ensure no calculated levels are negative
     return retArray.filter(([Lw, Ld]) => Lw >= 0 && Ld >= 0);

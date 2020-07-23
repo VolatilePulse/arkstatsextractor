@@ -1,11 +1,13 @@
 import IA from 'interval-arithmetic';
-import { ExtractLevelsFromTorpor, CalculateServerMults } from '../extractor';
-import { FilledArray } from '../utils';
+import * as Extractor from '../extractor';
+import * as Utils from '../utils';
 import { CombineMultipliers } from '../ark';
 import * as data from '../data';
 import { Server } from '../server';
-import { STAT_COUNT } from '../consts';
-import { Multipliers } from '../mults';
+import { STAT_COUNT, HEALTH, CRAFTING } from '../consts';
+import { toBeDeepCloseTo, toMatchCloseTo } from 'jest-matcher-deep-close-to';
+
+expect.extend({ toBeDeepCloseTo, toMatchCloseTo });
 
 jest.mock('../data');
 const mockedData = data as jest.Mocked<typeof data>;
@@ -13,8 +15,8 @@ const mockedData = data as jest.Mocked<typeof data>;
 describe('CalculateServerMults', () => {
     const fakePresetData = {
         servers: {
-            official: FilledArray(STAT_COUNT, () => FilledArray(5, () => 3)),
-            singleplayer: FilledArray(STAT_COUNT, () => FilledArray(5, () => 4)),
+            official: Utils.FilledArray(STAT_COUNT, () => Utils.FilledArray(5, () => 3)),
+            singleplayer: Utils.FilledArray(STAT_COUNT, () => Utils.FilledArray(5, () => 4)),
         },
         species: [],
     };
@@ -23,7 +25,7 @@ describe('CalculateServerMults', () => {
     it('properly multiplies singleplayer multipliers to the default multipliers', () => {
         const test = Server.FromOfficial(true);
 
-        const result = CalculateServerMults(test);
+        const result = Extractor.CalculateServerMults(test);
 
         expect(data.GetPresetData).toHaveBeenCalled();
         expect(result[0][0]).toEqual(12);
@@ -33,7 +35,7 @@ describe('CalculateServerMults', () => {
     it("doesn't modify the multipliers if singleplayer is false", () => {
         const test = Server.FromOfficial();
 
-        const result = CalculateServerMults(test);
+        const result = Extractor.CalculateServerMults(test);
 
         expect(data.GetPresetData).toHaveBeenCalled();
         expect(result[0][0]).toEqual(3);
@@ -43,7 +45,7 @@ describe('CalculateServerMults', () => {
     it("doesn't modify the input multipliers", () => {
         const test = Server.FromOfficial(true);
 
-        CalculateServerMults(test);
+        Extractor.CalculateServerMults(test);
         const mults = test.multipliers;
 
         expect(data.GetPresetData).toHaveBeenCalled();
@@ -62,7 +64,7 @@ describe('ExtractLevels', () => {
         const imprint = IA.ZERO;
         const m = mults;
 
-        const result = ExtractLevelsFromTorpor(1, torpor, IA.ONE, imprint, m);
+        const result = Extractor.ExtractLevelsFromTorpor(1, torpor, IA.ONE, imprint, m);
 
         expect(result).toEqual([[1, 0]]);
     });
@@ -72,7 +74,7 @@ describe('ExtractLevels', () => {
         const imprint = IA.ZERO;
         const m = mults;
 
-        const result = ExtractLevelsFromTorpor(50, torpor, IA.ONE, imprint, m);
+        const result = Extractor.ExtractLevelsFromTorpor(50, torpor, IA.ONE, imprint, m);
 
         expect(result).toEqual([[50, 0]]);
     });
@@ -83,7 +85,7 @@ describe('ExtractLevels', () => {
         const speciesT = [100, 0, 0, 0.5, 0, 0];
         const serverT = [0, 0, 1, 0, 0];
         const m = CombineMultipliers(speciesT, serverT);
-        const result = ExtractLevelsFromTorpor(50, torpor, IA.ONE, imprint, m);
+        const result = Extractor.ExtractLevelsFromTorpor(50, torpor, IA.ONE, imprint, m);
 
         expect(result).toEqual([[50, 0]]);
     });
@@ -95,7 +97,7 @@ describe('ExtractLevels', () => {
         const serverT = [0, 0, 1, 0, 0];
         const m = CombineMultipliers(speciesT, serverT);
 
-        const result = ExtractLevelsFromTorpor(75, torpor, IA.ONE, imprint, m);
+        const result = Extractor.ExtractLevelsFromTorpor(75, torpor, IA.ONE, imprint, m);
 
         expect(result).toEqual([[50, 25]]);
     });
@@ -106,7 +108,7 @@ describe('ExtractLevels', () => {
         const speciesT = [100, 0, 0, 0.5, 0, 0.2];
         const serverT = [0, 0, 1, 0, 1];
         const m = CombineMultipliers(speciesT, serverT);
-        const result = ExtractLevelsFromTorpor(50, torpor, IA.ONE, imprint, m);
+        const result = Extractor.ExtractLevelsFromTorpor(50, torpor, IA.ONE, imprint, m);
 
         expect(result).toEqual([[50, 0]]);
     });
@@ -118,7 +120,7 @@ describe('ExtractLevels', () => {
         const serverT = [0, 0, 1, 0, 0.0001];
         const m = CombineMultipliers(speciesT, serverT);
 
-        const result = ExtractLevelsFromTorpor(201, torpor, IA(0.0001), imprint, m);
+        const result = Extractor.ExtractLevelsFromTorpor(201, torpor, IA(0.0001), imprint, m);
 
         expect(result).toEqual([
             [196, 5],
@@ -135,7 +137,7 @@ describe('ExtractLevels', () => {
         const serverTorpor = [0, 0, 1, 1, 0];
         const m = CombineMultipliers(speciesTorpor, serverTorpor);
 
-        expect(() => ExtractLevelsFromTorpor(1, IA(100), IA.ONE, IA.ZERO, m)).toThrow(Error);
+        expect(() => Extractor.ExtractLevelsFromTorpor(1, IA(100), IA.ONE, IA.ZERO, m)).toThrow(Error);
     });
 
     it('throws an Error when Torpor has a Tm', () => {
@@ -143,12 +145,50 @@ describe('ExtractLevels', () => {
         const serverTorpor = [0, 0, 0, 1, 0];
         const m = CombineMultipliers(speciesTorpor, serverTorpor);
 
-        expect(() => ExtractLevelsFromTorpor(1, IA(100), IA.ONE, IA.ZERO, m)).toThrow(Error);
+        expect(() => Extractor.ExtractLevelsFromTorpor(1, IA(100), IA.ONE, IA.ZERO, m)).toThrow(Error);
     });
 
     it('throws an Error when Torpor increase per level is IA.ZERO', () => {
         const m = mults;
 
-        expect(() => ExtractLevelsFromTorpor(1, IA(100), IA.ZERO, IA.ZERO, m)).toThrow(Error);
+        expect(() => Extractor.ExtractLevelsFromTorpor(1, IA(100), IA.ZERO, IA.ZERO, m)).toThrow(Error);
+    });
+});
+
+describe('ConvertCreatureValuesToRanges', () => {
+    it('converts basic values from Ark', () => {
+        const input = Utils.FilledArray(12, () => 100);
+        const result = Extractor.ConvertCreatureValuesToRanges(input, false);
+        expect(result[HEALTH]).toMatchCloseTo({ lo: 99.95, hi: 100.05 }, 1);
+        expect(result[CRAFTING]).toMatchCloseTo({ lo: 99.95, hi: 100.05 }, 1);
+    });
+    it('converts basic values from export files', () => {
+        const input = Utils.FilledArray(12, () => 100);
+        const result = Extractor.ConvertCreatureValuesToRanges(input, true);
+        // We only check 4 places due to significant digits and a rounding factor of 10
+        expect(result[HEALTH]).toMatchCloseTo({ lo: 99.9999995, hi: 100.0000005 }, 4);
+        expect(result[CRAFTING]).toMatchCloseTo({ lo: 99.9999995, hi: 100.0000005 }, 4);
+    });
+    it('creates precise ranges for small values', () => {
+        const input = Utils.FilledArray(12, () => 1);
+        const result = Extractor.ConvertCreatureValuesToRanges(input, true);
+        // We only check 6 places due to a rounding factor of 10
+        expect(result[HEALTH]).toMatchCloseTo({ lo: 0.9999995, hi: 1.0000005 }, 6);
+        expect(result[CRAFTING]).toMatchCloseTo({ lo: 0.9999995, hi: 1.0000005 }, 6);
+    });
+});
+
+describe('PrepareValues', () => {
+    it('converts basic values from Ark', () => {
+        const input = Utils.FilledArray(12, () => IA(100));
+        const result = Extractor.PrepareValues(input, false);
+        expect(result[HEALTH]).toMatchCloseTo({ lo: 100, hi: 100 });
+        expect(result[CRAFTING]).toMatchCloseTo({ lo: 1, hi: 1 });
+    });
+    it('converts basic values from export files', () => {
+        const input = Utils.FilledArray(12, () => IA(100));
+        const result = Extractor.PrepareValues(input, true);
+        expect(result[HEALTH]).toMatchCloseTo({ lo: 100, hi: 100 });
+        expect(result[CRAFTING]).toMatchCloseTo({ lo: 101, hi: 101 });
     });
 });

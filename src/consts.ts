@@ -2,8 +2,9 @@ export const HEALTH = 0,
     STAMINA_ = 1,
     TORPOR = 2,
     OXYGEN = 3,
-    WATER = 4,
-    TEMPERATURE = 5,
+    FOOD = 4,
+    WATER = 5,
+    TEMPERATURE = 6,
     WEIGHT = 7,
     MELEE = 8,
     SPEED = 9,
@@ -23,3 +24,5 @@ export const B = 0,
     IBM = 10;
 
 export const STAT_COUNT = 12;
+
+export const IS_PERCENT = [false, false, false, false, false, false, false, false, true, true, false, true];
