@@ -1,26 +1,70 @@
 import IA, { Interval } from 'interval-arithmetic';
-import { intFromRange } from './utils';
+import { IntFromRange } from './utils';
 import { CombineAllMults } from './ark';
 import { Multipliers } from './mults';
 import { Server } from './server';
 import { GetPresetData } from './data';
 import { Creature } from './creature';
 import { Species } from './species';
-import { STAT_COUNT } from './consts';
+import { STAT_COUNT, TORPOR } from './consts';
 
-export function Extract(creature: Creature, server: Server, species: Species) {
+/**
+ * Performs a stat extraction for a creature.
+ *
+ * @param {Creature} c
+ * @param {Server} svr
+ * @param {Species} spc
+ * @param {boolean} fromExport
+ *
+ * @returns An array of stat possbilities for this species
+ */
+export function Extract(c: Creature, svr: Server, spc: Species, fromExport = false) {
     // Format creature values
-    const serverMults = CalculateServerMults(server);
-    const mults = CombineAllMults(species.stats, serverMults);
-    const m = AdjustMultipliers(mults, creature.isWild, creature.isTamed);
-    AdjustRanges(creature.isWild, creature.isTamed, creature.isBred, creature.imprint);
-    // ExtractLevelsFromTorpor();
+    const stats = ConvertCreatureValuesToRanges(c.statusValues, fromExport);
+    const values = PrepareValues(stats, fromExport);
+    const serverMults = CalculateServerMults(svr);
+    const mults = CombineAllMults(spc.stats, serverMults);
+    const m = AdjustMultipliers(mults, c.isWild, c.isTamed);
+    const [TE, imprint] = AdjustRanges(c.isWild, c.isTamed, c.isBred, c.imprint);
+    const levels = ExtractLevelsFromTorpor(c.level, values[TORPOR], IA(spc.torporIncrease), imprint, m[TORPOR]);
+
+    // ...
+}
+
+/**
+ * Convert creature input floats to Intervals to account for floating point inaccuracy.
+ *
+ * @param {number[]} values
+ * @param {boolean} fromExport
+ *
+ * @returns {Interval[]} An Interval array of the creature stat values
+ */
+export function ConvertCreatureValuesToRanges(values: number[], fromExport: boolean): Interval[] {
+    const retArray: Interval[] = [];
+    for (const v of values) {
+        retArray.push(IA(v));
+    }
+    return retArray;
+}
+
+/**
+ * Adds IA.ONE to all percent stats and clears all unused stats
+ *
+ * @param {Interval[]} stats
+ * @param {boolean} fromExport
+ *
+ * @returns An array of the Stat value intervals with unused stats set to IA.Empty()
+ */
+export function PrepareValues(stats: Interval[], fromExport: boolean): Interval[] {
+    if (fromExport) {
+    }
+    return [];
 }
 
 /**
  * Multiplies the server multipliers by the singleplayer multipliers if the server is a singleplayer server
  *
- * @param server
+ * @param {Server} server
  *
  * @returns A copy of the multipliers, multiplied by singleplayer multipliers if applicable
  */
@@ -40,13 +84,13 @@ export function CalculateServerMults(server: Server): number[][] {
 }
 
 /**
- * Zeros out the Tamed and/or Bred multipliers if the calculation wouldn't use them
+ * Zeros out the Tamed and/or Bred multipliers if the extractor wouldn't use them.
  *
- * @param multipliers
- * @param isWild
- * @param isTamed
+ * @param {Multipliers[]} multipliers
+ * @param {boolean} isWild
+ * @param {boolean} isTamed
  *
- * @returns A copy of the multipliers after they have been adjusted
+ * @returns A copy of the multipliers after they have been adjusted.
  */
 export function AdjustMultipliers(multipliers: Multipliers[], isWild: boolean, isTamed: boolean): Multipliers[] {
     const output: Multipliers[] = [];
@@ -66,45 +110,25 @@ export function AdjustMultipliers(multipliers: Multipliers[], isWild: boolean, i
     return output;
 }
 
+/**
+ * Converts the imprint value to a range, and creates a Taming Effectiveness range based on extraction type.
+ *
+ * @param {boolean} isWild
+ * @param {boolean} isTamed
+ * @param {boolean} isBred
+ * @param {number} imp
+ *
+ * @return {[Interval, Interval]} A tuple of the TE and Imprint Ranges.
+ */
 export function AdjustRanges(isWild: boolean, isTamed: boolean, isBred: boolean, imp: number): [Interval, Interval] {
-    let TE: Interval;
-    let imprint: Interval;
-
     if (isWild) {
-        TE = IA.ZERO;
-        imprint = IA.ZERO;
-    } else if (isTamed) {
-        TE = IA(0, 1);
-        imprint = IA.ZERO;
-    } else if (isBred) {
-        TE = IA.ONE;
-        imprint = IA(imp - 0.005, imp + 0.005); // TODO: Convert to a proper Interval range function
+        return [IA.ZERO, IA.ZERO];
     }
-
-    return [TE, imprint];
+    if (isTamed) {
+        return [IA(0, 1), IA.ZERO];
+    }
+    return [IA.ONE, IA(imp - 0.005, imp + 0.005)]; // TODO: Convert to a proper Interval range function
 }
-
-// Extract creature base & domestic levels
-//  Inputs:
-//      Creature level
-//      Creature is wild/tamed/bred
-//      Creature's Torpor value
-//      Creature's Imprint range
-
-//      Species' Torpor values
-
-//      Server's Torpor multipliers
-//      Server's Imprint bonus multiplier
-//  Outputs:
-//      On success:
-//          Array of 1 or more [Base Level, Domestic Levels, Valid Imprint Range]
-//      On failure:
-//          Empty Array
-//  Description:
-//      Calculate possible level range based on Imprint value
-//      Reverse torpor calculation
-//      Output is base level (wild levels from torpor + 1) & domestic level (level - base level)
-//      Multiple outputs may be possible due to Imprint value range
 
 // Stat Value Calculation:
 //  Iw = Iw * (Iw > 0) ? IwM : 1
@@ -124,16 +148,29 @@ export function AdjustRanges(isWild: boolean, isTamed: boolean, isBred: boolean,
 // Torpor Stat Value Calculation:
 //  (B * (1 + baseLevel * torporInc) * (1 + Imp * Ib * IbM) + Ta * TaM) * (1 + TE * Tm * TmM) * (1 + Ld * Id * IdM)
 
-// Extract creature base & domestic levels
+/**
+ * Use Torpor and current Creature level to calculate base and domestic level possibilities.
+ * @param {number} level
+ * @param {Interval} torpor
+ * @param {number} torporInc
+ * @param {Interval} imprint
+ * @param {Multipliers} m
+ *
+ * @throws {Error} If Torpor can be leveled
+ * @throws {Error} If Torpor is affected by Taming Effectiveness
+ * @throws {Error} If torporInc is 0
+ *
+ * @returns {[number, number][]} All possible combinations of base and domestic level possibilities.
+ * An empty array is returned if no combinations were found.
+ */
 export function ExtractLevelsFromTorpor(
     level: number,
     torpor: Interval,
     torporInc: Interval,
     imprint: Interval,
     m: Multipliers,
-    canLevel: boolean,
 ): Array<[number, number]> {
-    if (canLevel) throw new Error('Torpor being leveled is unsupported at this time.');
+    if (!IA.equal(m.Id, IA.ZERO)) throw new Error('Torpor being leveled is unsupported at this time.');
     if (!IA.equal(m.Tm, IA.ZERO)) throw new Error('Torpor having a TameMultiplier is unsupported at this time.');
     if (IA.equal(torporInc, IA.ZERO)) throw new Error('Torpor cannot be calculated for this species');
 
@@ -151,14 +188,14 @@ export function ExtractLevelsFromTorpor(
 
     // V = (1 + baseLevel * torporInc)
     // Isolate baseLevel
-    currentTorpor = IA.div(IA.sub(currentTorpor, IA.ONE), torporInc);
+    currentTorpor = IA.div(IA.sub(currentTorpor, IA.ONE), IA(torporInc));
 
     // Calculate Base Level from remaining Torpor value
     const baseLevel = IA.add(currentTorpor, IA.ONE);
     const retArray: Array<[number, number]> = [];
 
     // Create an Array based on possible Base Levels
-    for (const bl of intFromRange(baseLevel)) retArray.push([bl, level - bl]);
+    for (const bl of IntFromRange(baseLevel)) retArray.push([bl, level - bl]);
 
     // Ensure no calculated levels are negative
     return retArray.filter(([Lw, Ld]) => Lw >= 0 && Ld >= 0);

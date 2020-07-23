@@ -62,7 +62,7 @@ describe('ExtractLevels', () => {
         const imprint = IA.ZERO;
         const m = mults;
 
-        const result = ExtractLevelsFromTorpor(1, torpor, IA.ONE, imprint, m, false);
+        const result = ExtractLevelsFromTorpor(1, torpor, IA.ONE, imprint, m);
 
         expect(result).toEqual([[1, 0]]);
     });
@@ -72,7 +72,7 @@ describe('ExtractLevels', () => {
         const imprint = IA.ZERO;
         const m = mults;
 
-        const result = ExtractLevelsFromTorpor(50, torpor, IA.ONE, imprint, m, false);
+        const result = ExtractLevelsFromTorpor(50, torpor, IA.ONE, imprint, m);
 
         expect(result).toEqual([[50, 0]]);
     });
@@ -83,7 +83,7 @@ describe('ExtractLevels', () => {
         const speciesT = [100, 0, 0, 0.5, 0, 0];
         const serverT = [0, 0, 1, 0, 0];
         const m = CombineMultipliers(speciesT, serverT);
-        const result = ExtractLevelsFromTorpor(50, torpor, IA.ONE, imprint, m, false);
+        const result = ExtractLevelsFromTorpor(50, torpor, IA.ONE, imprint, m);
 
         expect(result).toEqual([[50, 0]]);
     });
@@ -95,7 +95,7 @@ describe('ExtractLevels', () => {
         const serverT = [0, 0, 1, 0, 0];
         const m = CombineMultipliers(speciesT, serverT);
 
-        const result = ExtractLevelsFromTorpor(75, torpor, IA.ONE, imprint, m, false);
+        const result = ExtractLevelsFromTorpor(75, torpor, IA.ONE, imprint, m);
 
         expect(result).toEqual([[50, 25]]);
     });
@@ -106,7 +106,7 @@ describe('ExtractLevels', () => {
         const speciesT = [100, 0, 0, 0.5, 0, 0.2];
         const serverT = [0, 0, 1, 0, 1];
         const m = CombineMultipliers(speciesT, serverT);
-        const result = ExtractLevelsFromTorpor(50, torpor, IA.ONE, imprint, m, false);
+        const result = ExtractLevelsFromTorpor(50, torpor, IA.ONE, imprint, m);
 
         expect(result).toEqual([[50, 0]]);
     });
@@ -118,7 +118,7 @@ describe('ExtractLevels', () => {
         const serverT = [0, 0, 1, 0, 0.0001];
         const m = CombineMultipliers(speciesT, serverT);
 
-        const result = ExtractLevelsFromTorpor(201, torpor, IA(0.0001), imprint, m, false);
+        const result = ExtractLevelsFromTorpor(201, torpor, IA(0.0001), imprint, m);
 
         expect(result).toEqual([
             [196, 5],
@@ -131,9 +131,11 @@ describe('ExtractLevels', () => {
     });
 
     it('throws an Error when Torpor can be leveled', () => {
-        const m = mults;
+        const speciesTorpor = [100, 0, 1, 0, 1, 0];
+        const serverTorpor = [0, 0, 1, 1, 0];
+        const m = CombineMultipliers(speciesTorpor, serverTorpor);
 
-        expect(() => ExtractLevelsFromTorpor(1, IA(100), IA.ONE, IA.ZERO, m, true)).toThrow(Error);
+        expect(() => ExtractLevelsFromTorpor(1, IA(100), IA.ONE, IA.ZERO, m)).toThrow(Error);
     });
 
     it('throws an Error when Torpor has a Tm', () => {
@@ -141,12 +143,12 @@ describe('ExtractLevels', () => {
         const serverTorpor = [0, 0, 0, 1, 0];
         const m = CombineMultipliers(speciesTorpor, serverTorpor);
 
-        expect(() => ExtractLevelsFromTorpor(1, IA(100), IA.ONE, IA.ZERO, m, true)).toThrow(Error);
+        expect(() => ExtractLevelsFromTorpor(1, IA(100), IA.ONE, IA.ZERO, m)).toThrow(Error);
     });
 
     it('throws an Error when Torpor increase per level is IA.ZERO', () => {
         const m = mults;
 
-        expect(() => ExtractLevelsFromTorpor(1, IA(100), IA.ZERO, IA.ZERO, m, true)).toThrow(Error);
+        expect(() => ExtractLevelsFromTorpor(1, IA(100), IA.ZERO, IA.ZERO, m)).toThrow(Error);
     });
 });

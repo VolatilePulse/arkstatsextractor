@@ -1,16 +1,11 @@
 /* eslint-disable */
 
 const IA = require('interval-arithmetic').Interval;
-const extractor = require('./public/js/extractor');
-const ExtractLevelsFromTorpor = require('./public/js/extractor').ExtractLevelsFromTorpor;
-const CombineMultipliers = require('./public/js/utils').CombineMultipliers;
+const nextfloat32 = require('math-float32-nextafter');
+const extractor = require('./public/extractor');
+const ExtractLevelsFromTorpor = require('./public/extractor').ExtractLevelsFromTorpor;
+const intervalFromDecimal = require('./public/utils').intervalFromDecimal;
 
-const speciesTorpor = [100, 0, 0, 0, 0, 0];
-const serverTorpor = [0, 0, 0, 0, 0];
-const mults = CombineMultipliers(speciesTorpor, serverTorpor);
-
-const torpor = IA(100);
-const imprint = IA.ZERO;
-const m = mults;
+value = 600_000.825;
 
 // const util = require('./public/js/utils');
